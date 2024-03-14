@@ -1,11 +1,4 @@
-# gm_sts
-gm_sts is a gamemode built in Garry's mod originally by Tergative. It is inspired by the Sven Co-op map bm_sts by Trempler. The gameplay consists of randomizing and upgrading units as a team and fighting against other team's units. Every two rounds a bonus round occurs which awards teams points based on objectives completed. 
+What happens when you take a college student straight out of a Java OOP class and task him with rewriting an entire gamemode in lua?
+You get this.
 
-
-## Contributing
-If you're going to contribute, ensure you are using VSCode and you are running GLuaLint and GLua Enhanced.
-Write clean, easy to read, self descriptive code, and use comments when needed.
-Make sure to use descriptive variable names, and please useCamelCase.
-
-## Disclaimer
-Some if not most of the work on this project is not visible through github due to work done in the Hammer Map Editor
+This is an attempt to completely rewrite gm_sts to move as much logic as possible to lua, to make the gamemode more manageable.

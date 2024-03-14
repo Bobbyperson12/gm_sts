@@ -1,7 +1,16 @@
 include("shared.lua")
 include("testhud.lua")
-include("custommenu.lua")
-local client = LocalPlayer()
+include("net.lua")
+include("cubes.lua")
+include("mobs.lua")
+include("sound.lua")
+points = 0
+startingPoints = 20
+startingRounds = 5
+gameStarted = false
+tempMessage = ""
+startedGame = false
+CreateClientConVar("sts_use_descriptions", "1", true, true, "Enables mob descriptions", 0, 1)
 
 surface.CreateFont("timefont", {
     font = "Default", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
@@ -22,20 +31,20 @@ surface.CreateFont("timefont", {
 })
 
 function GM:SpawnMenuOpen()
-    if client:GetNWInt("stsgod") == 1 then
-        return true
-    else
-        return false
-    end
+    return false
 end
 
 function GM:OnContextMenuOpen()
-    if client:GetNWInt("stsgod") == 1 then
-        return true
-    else
-        return false
-    end
+    return false
+
 end
+
+boxName = ""
+boxRarity = 0
+boxStrength = 0
+boxLevel = 0
+boxKey = ""
+tickTimerOver = 0
 
 hook.Add("PlayerSpawnProp", "RestrictSpawningProps", function(ply)
     return false

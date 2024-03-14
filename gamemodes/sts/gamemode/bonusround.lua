@@ -1,128 +1,185 @@
-function survivalstart()
-    for _, entity in ipairs(ents.GetAll()) do
-        if entity:GetName() == "timer_vars" then
-            survtime = entity:GetInternalVariable("Case15") -- stored in hammer?
-        end
-    end
-
-    timerset(tonumber(survtime))
-    timon(1)
-
-    for _, ply in ipairs(player.GetAll()) do
-        ply:SetNWInt("timer", tonumber(survtime))
-        ply:SetNWInt("survive", 1)
-    end
-end
-
-function survivalcheck()
-    for _, ply in ipairs(player.GetAll()) do
-        if ply:GetNWInt("survive") == 1 then
-            survpointadd(ply:Team())
-            ply:SetNWInt("survive", 0)
-        end
-    end
-end
-
-function timeset(y, x)
-    for _, entity in ipairs(ents.GetAll()) do
-        if entity:GetName() == "timer_vars" then
-            entity:SetKeyValue("Case1" .. tostring(4 + y), tostring(x))
-        end
-    end
-end
-
-function deathstart()
-    for _, entity in ipairs(ents.GetAll()) do
-        if entity:GetName() == "timer_vars" then
-            deathtime = entity:GetInternalVariable("Case16")
-        end
-    end
-
-    timerset(tonumber(deathtime))
-    timon(1)
-    deathmatch(1)
-end
-
--- ???
-function timon(x)
-    for _, ply in ipairs(player.GetAll()) do
-        ply:SetNWInt("timon", x)
-    end
-end
-
-function timerset(x)
-    for _, ply in ipairs(player.GetAll()) do
-        ply:SetNWInt("timer", x)
-    end
-end
-
-function timersub(x)
-    for _, ply in ipairs(player.GetAll()) do
-        if ply:GetNWInt("timer") == 1 then
-            timend()
-            break
-        end
-
-        ply:SetNWInt("timer", ply:GetNWInt("timer") - x)
-    end
-end
-
-function timend()
-    timon(0)
-
-    for _, entity in ipairs(ents.GetAll()) do
-        if entity:GetName() == "bonusround_deathmatch_end" then
-            entity:Fire("Trigger")
-        end
-
-        if entity:GetName() == "bonusround_survival_end" then
-            entity:Fire("Trigger")
-        end
-    end
-end
-
---DEATHMATCH	
-function deathmatch(x)
-    for _, ply in ipairs(player.GetAll()) do
-        ply:SetNWInt("combat", x)
-    end
-end
-
-function deathmatchkill(victim, inflictor, attacker)
-    victim:SetNWInt("survive", 0)
-
+function deathmatchKill(victim, inflictor, attacker)
     if attacker == victim then
-        print("Quit killing yourself")
-    elseif attacker:GetNWInt("combat") == 1 then
-        print("player died in combat")
+        attacker:PrintMessage(HUD_PRINTTALK, "Quit killing yourself")
+    elseif attacker:IsPlayer() then
         local teamnum = attacker:Team()
 
         if teamnum == victim:Team() then
-            print("Quit Team Killing")
+            attacker:PrintMessage(HUD_PRINTTALK, "Quit Team Killing")
         else
-            for _, ply in ipairs(player.GetAll()) do
-                if teamnum == 1 then
-                    ply:PrintMessage(HUD_PRINTTALK, "Blue Team Gained a Point!")
-                end
-
-                if teamnum == 2 then
-                    ply:PrintMessage(HUD_PRINTTALK, "Red Team Gained a Point!")
-                end
-
-                if teamnum == 3 then
-                    ply:PrintMessage(HUD_PRINTTALK, "Green Team Gained a Point!")
-                end
-
-                if teamnum == 4 then
-                    ply:PrintMessage(HUD_PRINTTALK, "Yellow Team Gained a Point!")
-                end
-
-                if ply:Team() == teamnum then
-                    ply:SetNWInt("researchPoints", ply:GetNWInt("researchPoints") + ply:GetNWInt("dmpnt"))
-                end
+            if teamnum == 1 then
+                PrintMessage(HUD_PRINTTALK, "Blue Team Gained a Point!")
+            elseif teamnum == 2 then
+                PrintMessage(HUD_PRINTTALK, "Red Team Gained a Point!")
+            elseif teamnum == 3 then
+                PrintMessage(HUD_PRINTTALK, "Green Team Gained a Point!")
+            elseif teamnum == 4 then
+                PrintMessage(HUD_PRINTTALK, "Yellow Team Gained a Point!")
             end
+            return teamnum
         end
     end
+    return 0
 end
 
-hook.Add("PlayerDeath", "Deathmatch Add Points", deathmatchkill)
+hook.Add("PlayerDeath", "Deathmatch Add Points", deathmatchKill) -- this can be on forever cause if someone figures out a way to kill outside of a bonus round thats funny asf
+
+function getBonusRoundBeginFunc()
+
+    local lookupTable = {
+        ["waiting_lobby_mapleverb_lake"] = beginElMatador, 
+        ["waiting_lobby_mapleverb_blue"] = beginSpaceSMGs, 
+        ["waiting_lobby_mapleverb_green"] = beginCrabRave, 
+        ["waiting_lobby_mapleverb_boomstick"] = beginBoomstick, 
+        ["waiting_lobby_mapleverb_ctf"] = beginCTF, 
+        ["waiting_lobby_mapleverb_battery"] = beginBattery, 
+        ["waiting_lobby_mapleverb_ravsurv"] = beginRavenholm, 
+        ["waiting_lobby_mapleverb_rav"] = beginHl2dm, 
+        ["waiting_lobby_mapleverb_cit"] = beginDodgeball, 
+        ["waiting_lobby_mapleverb_square"] = beginLookUp
+    }
+
+    local br = lookupTable[nextBR]
+
+    return br
+end
+
+function getBonusRoundEndFunc()
+
+    local lookupTable = {
+        ["waiting_lobby_mapleverb_lake"] = endElMatador, 
+        ["waiting_lobby_mapleverb_blue"] = endSpaceSMGs, 
+        ["waiting_lobby_mapleverb_green"] = endCrabRave, 
+        ["waiting_lobby_mapleverb_boomstick"] = endBoomstick, 
+        ["waiting_lobby_mapleverb_ctf"] = endCTF, 
+        ["waiting_lobby_mapleverb_battery"] = endBattery, 
+        ["waiting_lobby_mapleverb_ravsurv"] = endRavenholm, 
+        ["waiting_lobby_mapleverb_rav"] = endHl2dm, 
+        ["waiting_lobby_mapleverb_cit"] = endDodgeball, 
+        ["waiting_lobby_mapleverb_square"] = endLookUp
+    }
+
+    local br = lookupTable[nextBR]
+
+    return br
+end
+
+function elMatadorTeleport(ply)
+    -- this function will only be run after one death in the minigame in which case they need to be teleported above
+end
+
+function beginElMatador()
+    hook.add("PlayerSpawn", "ElMatadorTP", elMatadorTeleport)
+end
+
+function endElMatador()
+    hook.remove("PlayerSpawn", "ElMatadorTP")
+end
+
+function SpaceSMGsTeleport()
+    -- this is a dm minigame which requires random tps around the map
+end
+
+function beginSpaceSMGs()
+    hook.add("PlayerSpawn", "SpaceSMGTP", SpaceSMGsTeleport)
+end
+
+function endSpaceSMGs()
+    hook.remove("PlayerSpawn", "SpaceSMGTP")
+end
+
+function CTFTeleport(ply)
+    -- this is a dm minigame which requires random tps around the map
+end
+
+function beginCTF()
+    hook.add("PlayerSpawn", "CTFTP", CTFTeleport)
+end
+
+function endCTF()
+    hook.remove("PlayerSpawn", "CTFTP")
+end
+
+function BatteryTeleport(ply)
+    -- this is a dm minigame which requires random tps around the map
+end
+
+function beginBattery()
+    hook.add("PlayerSpawn", "BatteryTP", BatteryTeleport)
+end
+
+function endBattery()
+    hook.remove("PlayerSpawn", "BatteryTP")
+end
+
+function crabRaveTeleport(ply)
+    -- survival minigame, players need to be teleported to a safe location
+end
+
+function beginCrabRave()
+    hook.add("PlayerSpawn", "CrabRaveTP", crabRaveTeleport)
+end
+
+function endCrabRave()
+    hook.remove("PlayerSpawn", "CrabRaveTP")
+end
+
+function boomstickTeleport()
+
+end
+
+function beginBoomstick()
+    hook.add("PlayerSpawn", "BoomstickTP", boomstickTeleport)
+end
+
+function endBoomstick()
+    hook.remove("PlayerSpawn", "BoomstickTP")
+end
+
+function ravenholmTeleport()
+
+end
+
+function beginRavenholm()
+    hook.add("PlayerSpawn", "RavenholmTP", ravenholmTeleport)
+end
+
+function endRavenholm()
+    hook.remove("PlayerSpawn", "RavenholmTP")
+end
+
+function hl2dmTeleport()
+
+end
+
+function beginHl2dm()
+    hook.add("PlayerSpawn", "HL2TP", hl2dmTeleport)
+end
+
+function endHl2dm()
+    hook.remove("PlayerSpawn", "HL2TP")
+end
+
+function dodgeballTeleport()
+
+end
+
+function beginDodgeball()
+    hook.add("PlayerSpawn", "DodgeballTP", dodgeballTeleport)
+end
+
+function endDodgeball()
+    hook.remove("PlayerSpawn", "DodgeballTP")
+end
+
+function lookUpTeleport()
+
+end
+
+function beginLookUp()
+    hook.add("PlayerSpawn", "LookUpTP", lookUpTeleport)
+end
+
+function endLookUp()
+    hook.remove("PlayerSpawn", "LookUpTP")
+end
